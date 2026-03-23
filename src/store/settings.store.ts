@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-import { createMMKV } from 'react-native-mmkv';
-
-const storage = createMMKV({ id: 'jarvis-settings' });
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface SettingsState {
   darkMode: boolean;
@@ -9,26 +7,34 @@ interface SettingsState {
   aiProvider: 'gemini';
   setDarkMode: (v: boolean) => void;
   setBriefingTime: (t: string) => void;
-}
-
-function persisted<T>(key: string, defaultValue: T): T {
-  const raw = storage.getString(key);
-  if (raw == null) return defaultValue;
-  try { return JSON.parse(raw) as T; } catch { return defaultValue; }
+  loadSettings: () => Promise<void>;
 }
 
 export const useSettingsStore = create<SettingsState>((set) => ({
-  darkMode: persisted('darkMode', false),
-  briefingTime: persisted('briefingTime', '08:00'),
+  darkMode: false,
+  briefingTime: '08:00',
   aiProvider: 'gemini',
 
+  loadSettings: async () => {
+    try {
+      const [darkMode, briefingTime] = await Promise.all([
+        AsyncStorage.getItem('darkMode'),
+        AsyncStorage.getItem('briefingTime'),
+      ]);
+      set({
+        darkMode: darkMode != null ? JSON.parse(darkMode) : false,
+        briefingTime: briefingTime ?? '08:00',
+      });
+    } catch {}
+  },
+
   setDarkMode: (v) => {
-    storage.set('darkMode', JSON.stringify(v));
+    AsyncStorage.setItem('darkMode', JSON.stringify(v));
     set({ darkMode: v });
   },
 
   setBriefingTime: (t) => {
-    storage.set('briefingTime', JSON.stringify(t));
+    AsyncStorage.setItem('briefingTime', t);
     set({ briefingTime: t });
   },
 }));
