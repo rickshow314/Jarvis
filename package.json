@@ -43,7 +43,7 @@
   "devDependencies": {
     "@types/react": "~18.3.21",
     "drizzle-kit": "^0.31.10",
-    "typescript": "~5.8.4"
+    "typescript": "~5.3.3"
   },
   "private": true
 }
