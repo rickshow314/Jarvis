@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useSettingsStore } from '@/src/store/settings.store';
 import { secureStorage } from '@/src/utils/secureStorage';
-import { notificationService } from '@/src/services/notification.service';
+// notificationService loaded lazily to avoid expo-notifications crash in Expo Go
 
 export default function SettingsScreen() {
   const { darkMode, setDarkMode, briefingTime, setBriefingTime } = useSettingsStore();
@@ -29,7 +29,10 @@ export default function SettingsScreen() {
   };
 
   const saveBriefingTime = async () => {
-    await notificationService.scheduleDailyBriefing(briefingTime);
+    try {
+      const { notificationService } = require('@/src/services/notification.service');
+      await notificationService.scheduleDailyBriefing(briefingTime);
+    } catch { /* notifications not available in Expo Go */ }
     Alert.alert('Saved', `Morning briefing set for ${briefingTime}.`);
   };
 
