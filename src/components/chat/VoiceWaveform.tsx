@@ -1,13 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withRepeat,
-  withSequence,
-  withTiming,
-  Easing,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { View, Animated, StyleSheet } from 'react-native';
 
 const BAR_COUNT = 5;
 const BAR_COLOR = '#6C63FF';
@@ -17,35 +9,30 @@ interface Props {
 }
 
 export function VoiceWaveform({ isActive }: Props) {
-  const heights = Array.from({ length: BAR_COUNT }, () => useSharedValue(4));
+  const heights = useRef(Array.from({ length: BAR_COUNT }, () => new Animated.Value(4))).current;
 
   useEffect(() => {
-    heights.forEach((h, i) => {
-      if (isActive) {
-        h.value = withRepeat(
-          withSequence(
-            withTiming(24 + Math.random() * 16, {
-              duration: 250 + i * 60,
-              easing: Easing.inOut(Easing.ease),
-            }),
-            withTiming(4, { duration: 250 + i * 60, easing: Easing.inOut(Easing.ease) }),
-          ),
-          -1,
-          true,
-        );
-      } else {
-        h.value = withTiming(4, { duration: 200 });
-      }
-    });
+    if (isActive) {
+      const animations = heights.map((h, i) =>
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(h, { toValue: 24 + i * 4, duration: 250 + i * 60, useNativeDriver: false }),
+            Animated.timing(h, { toValue: 4, duration: 250 + i * 60, useNativeDriver: false }),
+          ])
+        )
+      );
+      animations.forEach(a => a.start());
+      return () => animations.forEach(a => a.stop());
+    } else {
+      heights.forEach(h => Animated.timing(h, { toValue: 4, duration: 200, useNativeDriver: false }).start());
+    }
   }, [isActive]);
 
   return (
     <View style={styles.container}>
-      {heights.map((h, i) => {
-        // eslint-disable-next-line react-hooks/rules-of-hooks
-        const style = useAnimatedStyle(() => ({ height: h.value }));
-        return <Animated.View key={i} style={[styles.bar, style]} />;
-      })}
+      {heights.map((h, i) => (
+        <Animated.View key={i} style={[styles.bar, { height: h }]} />
+      ))}
     </View>
   );
 }

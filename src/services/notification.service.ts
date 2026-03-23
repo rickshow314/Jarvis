@@ -1,28 +1,33 @@
-import * as Notifications from 'expo-notifications';
 import { briefingService } from './briefing.service';
 import { voiceService } from './voice.service';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+let Notifications: typeof import('expo-notifications') | null = null;
+try {
+  Notifications = require('expo-notifications');
+  Notifications!.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+} catch {
+  // expo-notifications not available
+}
 
 export const notificationService = {
   requestPermission: async (): Promise<boolean> => {
+    if (!Notifications) return false;
     const { status } = await Notifications.requestPermissionsAsync();
     return status === 'granted';
   },
 
   scheduleDailyBriefing: async (time: string): Promise<void> => {
+    if (!Notifications) return;
     const [hour, minute] = time.split(':').map(Number);
-    // Cancel any existing briefing triggers
     await Notifications.cancelAllScheduledNotificationsAsync();
-
     await Notifications.scheduleNotificationAsync({
       content: {
         title: '☀️ Good morning!',
