@@ -91,7 +91,7 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>Appearance</Text>
           <View style={styles.row}>
             <Text style={styles.label}>Dark Mode</Text>
-            <Switch value={darkMode} onValueChange={setDarkMode} trackColor={{ true: '#6C63FF' }} />
+            <Switch value={darkMode} onValueChange={setDarkMode} trackColor={{ false: '#767577', true: '#6C63FF' }} />
           </View>
         </View>
 
