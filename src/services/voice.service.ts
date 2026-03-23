@@ -1,5 +1,4 @@
 import * as Speech from 'expo-speech';
-import { Audio } from 'expo-av';
 
 type ResultCallback = (text: string) => void;
 
@@ -20,11 +19,6 @@ export const voiceService = {
 
   startListening: async (onResult: ResultCallback): Promise<void> => {
     onResultCallback = onResult;
-
-    const { status } = await Audio.requestPermissionsAsync();
-    if (status !== 'granted') {
-      throw new Error('Microphone permission denied.');
-    }
 
     if (!VoiceModule) {
       // Expo Go fallback — simulate after 2s
