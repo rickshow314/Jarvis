@@ -3,12 +3,13 @@ import { db } from '../client';
 import { tasks, type Task, type NewTask } from '../schema';
 
 export const taskRepo = {
-  getAll: () => db.select().from(tasks).orderBy(tasks.createdAt),
+  getAll: () => db ? db.select().from(tasks).orderBy(tasks.createdAt) : Promise.resolve([]),
 
   getByCategory: (category: Task['category']) =>
-    db.select().from(tasks).where(eq(tasks.category, category)),
+    db ? db.select().from(tasks).where(eq(tasks.category, category)) : Promise.resolve([]),
 
   getOverdue: () => {
+    if (!db) return Promise.resolve([]);
     const now = new Date().toISOString();
     return db
       .select()
@@ -16,13 +17,13 @@ export const taskRepo = {
       .where(and(eq(tasks.done, false), lte(tasks.dueDate, now)));
   },
 
-  create: (data: NewTask) => db.insert(tasks).values(data).returning(),
+  create: (data: NewTask) => db ? db.insert(tasks).values(data).returning() : Promise.resolve([]),
 
   update: (id: number, data: Partial<NewTask>) =>
-    db.update(tasks).set(data).where(eq(tasks.id, id)).returning(),
+    db ? db.update(tasks).set(data).where(eq(tasks.id, id)).returning() : Promise.resolve([]),
 
   toggleDone: (id: number, done: boolean) =>
-    db.update(tasks).set({ done }).where(eq(tasks.id, id)).returning(),
+    db ? db.update(tasks).set({ done }).where(eq(tasks.id, id)).returning() : Promise.resolve([]),
 
-  delete: (id: number) => db.delete(tasks).where(eq(tasks.id, id)),
+  delete: (id: number) => db ? db.delete(tasks).where(eq(tasks.id, id)) : Promise.resolve([]),
 };

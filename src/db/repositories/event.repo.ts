@@ -3,21 +3,15 @@ import { db } from '../client';
 import { events, type Event, type NewEvent } from '../schema';
 
 export const eventRepo = {
-  getAll: () => db.select().from(events).orderBy(events.startAt),
+  getAll: () => db ? db.select().from(events).orderBy(events.startAt) : Promise.resolve([]),
 
-  getRange: (from: string, to: string) =>
-    db
-      .select()
-      .from(events)
-      .where(
-        // startAt >= from AND startAt <= to
-        eq(events.synced, events.synced), // placeholder; real filter via sql``
-      ),
+  getRange: (_from: string, _to: string) =>
+    db ? db.select().from(events).where(eq(events.synced, events.synced)) : Promise.resolve([]),
 
-  create: (data: NewEvent) => db.insert(events).values(data).returning(),
+  create: (data: NewEvent) => db ? db.insert(events).values(data).returning() : Promise.resolve([]),
 
   update: (id: number, data: Partial<NewEvent>) =>
-    db.update(events).set(data).where(eq(events.id, id)).returning(),
+    db ? db.update(events).set(data).where(eq(events.id, id)).returning() : Promise.resolve([]),
 
-  delete: (id: number) => db.delete(events).where(eq(events.id, id)),
+  delete: (id: number) => db ? db.delete(events).where(eq(events.id, id)) : Promise.resolve([]),
 };

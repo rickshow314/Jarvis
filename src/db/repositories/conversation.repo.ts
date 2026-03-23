@@ -4,19 +4,18 @@ import { conversations, messages, type Message, type NewMessage } from '../schem
 
 export const conversationRepo = {
   createConversation: () =>
-    db.insert(conversations).values({}).returning(),
+    db ? db.insert(conversations).values({}).returning() : Promise.resolve([]),
 
   getMessages: (conversationId: number) =>
     db
-      .select()
-      .from(messages)
-      .where(eq(messages.conversationId, conversationId))
-      .orderBy(messages.createdAt),
+      ? db.select().from(messages).where(eq(messages.conversationId, conversationId)).orderBy(messages.createdAt)
+      : Promise.resolve([]),
 
   addMessage: (data: NewMessage) =>
-    db.insert(messages).values(data).returning(),
+    db ? db.insert(messages).values(data).returning() : Promise.resolve([]),
 
   deleteConversation: (id: number) => {
+    if (!db) return Promise.resolve([]);
     db.delete(messages).where(eq(messages.conversationId, id));
     return db.delete(conversations).where(eq(conversations.id, id));
   },
